@@ -9,12 +9,13 @@ const port = process.env.PORT || 5000;
 
 
 // middle ware
-app.use(cors({
-  origin: ['http://localhost:5173'],
-  credentials: true
-}));
+// {
+//   origin: ['http://localhost:5173'],
+//   credentials: true
+// }
+app.use(cors());   
 app.use(express.json());
-app.use(cookieParser());
+// app.use(cookieParser());
 
 
 
@@ -32,33 +33,33 @@ const client = new MongoClient(uri, {
 
 // middlewares-------------------------------------------------------
 
-const logger = async(req, res, next) => {
-  console.log('called:', req.host, req.originalUrl);
-  next();
-}
+// const logger = async(req, res, next) => {
+//   console.log('called:', req.host, req.originalUrl);
+//   next();
+// }
 
-const verifyToken = async(req, res, next) => {
-   const token = req.cookies?.token;
-   console.log(req.cookies.token);
-   console.log('value of token in middle ware', token);
-   if(!token){
-    return res.status(401).send({message: 'not authorized'})
-   }
-   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-    // error================================
+// const verifyToken = async(req, res, next) => {
+//    const token = req.cookies?.token;
+//    console.log(req.cookies.token);
+//    console.log('value of token in middle ware', token);
+//    if(!token){
+//     return res.status(401).send({message: 'not authorized'})
+//    }
+//    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+//     // error================================
 
-    if(err){
-      console.log(err);
-      return req.status(401).send({message: 'unauthorized'})
-    }
+//     if(err){
+//       console.log(err);
+//       return req.status(401).send({message: 'unauthorized'})
+//     }
 
-    // if token is valid then it would be decoded
-    console.log('value in the token', decoded);
-    req.user = decoded;
-    next()
-   })
+//     // if token is valid then it would be decoded
+//     console.log('value in the token', decoded);
+//     req.user = decoded;
+//     next()
+//    })
   
-}
+// }
 
 
 async function run() {
@@ -72,24 +73,24 @@ async function run() {
 
     // Auth Related API========================================================
 
-    app.post('/jwt', logger, async(req, res) => {
-      const user = req.body;
-      console.log(user);
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'})
-      res
-      .cookie('token', token,{
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none'
-      })
-      .send({success: true})
-    })
+    // app.post('/jwt', logger, async(req, res) => {
+    //   const user = req.body;
+    //   console.log(user);
+    //   const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'})
+    //   res
+    //   .cookie('token', token,{
+    //     httpOnly: true,
+    //     secure: true,
+    //     sameSite: 'none'
+    //   })
+    //   .send({success: true})
+    // })
 
 
 
     // service Related API______________________________________________________
 
-    app.get('/services', logger, async (req, res) => {
+    app.get('/services',  async (req, res) => {
       const cursor = serviceCollection.find();
       const result = await cursor.toArray();
       res.send(result);
@@ -110,14 +111,15 @@ async function run() {
 
     // bookings=============================================================
 
-    app.get('/bookings', logger, verifyToken, async(req, res) => {
+    app.get('/bookings',  async(req, res) => {
       console.log(req.query.email);
       // console.log('took took token', req.cookies.token);
       // console.log(req.cookies.token);
-      console.log('user in the valid', req.user);
-      if(req.query.email !== req.user.email){
-        return res.status(403).send({message: 'forbidden access'})
-      }
+      // console.log('user in the valid', req.user);
+      // if(req.query.email !== req.user.email){
+      //   return res.status(403).send({message: 'forbidden access'})
+      // }
+
       let query = {};
       if(req.query?.email){
         query = {email: req.query.email}
@@ -129,6 +131,7 @@ async function run() {
 
     app.post('/bookings', async(req, res) => {
       const booking = req.body;
+      console.log(booking);
       const result = await bookingCollection.insertOne(booking);
       res.send(result);
     })
